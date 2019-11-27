@@ -205,8 +205,8 @@ namespace OpenRA.Mods.Common.Widgets
 				// Charge progress
 				var sp = p.Power;
 				clock.PlayFetchIndex(ClockSequence,
-					() => sp.TotalTime == 0 ? clock.CurrentSequence.Length - 1 : (sp.TotalTime - sp.RemainingTime)
-					* (clock.CurrentSequence.Length - 1) / sp.TotalTime);
+					() => sp.TotalTicks == 0 ? clock.CurrentSequence.Length - 1 : (sp.TotalTicks - sp.RemainingTicks)
+					* (clock.CurrentSequence.Length - 1) / sp.TotalTicks);
 
 				clock.Tick();
 				WidgetUtils.DrawSHPCentered(clock.Image, p.Pos + iconOffset, p.IconClockPalette);
@@ -215,7 +215,15 @@ namespace OpenRA.Mods.Common.Widgets
 			// Overlay
 			foreach (var p in icons.Values)
 			{
-				if (p.Power.Ready)
+				var customText = p.Power.IconOverlayTextOverride();
+				if (customText != null)
+				{
+					var customOffset = iconOffset - overlayFont.Measure(customText) / 2;
+					overlayFont.DrawTextWithContrast(customText,
+						p.Pos + customOffset,
+						Color.White, Color.Black, 1);
+				}
+				else if (p.Power.Ready)
 					overlayFont.DrawTextWithContrast(ReadyText,
 						p.Pos + readyOffset,
 						Color.White, Color.Black, 1);
@@ -224,7 +232,7 @@ namespace OpenRA.Mods.Common.Widgets
 						p.Pos + holdOffset,
 						Color.White, Color.Black, 1);
 				else
-					overlayFont.DrawTextWithContrast(WidgetUtils.FormatTime(p.Power.RemainingTime, worldRenderer.World.Timestep),
+					overlayFont.DrawTextWithContrast(WidgetUtils.FormatTime(p.Power.RemainingTicks, worldRenderer.World.Timestep),
 						p.Pos + timeOffset,
 						Color.White, Color.Black, 1);
 			}
