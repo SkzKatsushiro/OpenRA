@@ -158,7 +158,7 @@ namespace OpenRA.Mods.Common.Traits
 		bool IOccupySpaceInfo.SharesCell { get { return false; } }
 
 		// Used to determine if an aircraft can spawn landed
-		public bool CanEnterCell(World world, Actor self, CPos cell, Actor ignoreActor = null, BlockedByActor check = BlockedByActor.All)
+		public bool CanEnterCell(World world, Actor self, CPos cell, SubCell subCell = SubCell.FullCell, Actor ignoreActor = null, BlockedByActor check = BlockedByActor.All)
 		{
 			if (!world.Map.Contains(cell))
 				return false;
@@ -173,6 +173,7 @@ namespace OpenRA.Mods.Common.Traits
 			if (check == BlockedByActor.None)
 				return true;
 
+			// Since aircraft don't share cells, we don't pass the subCell parameter
 			return !world.ActorMap.GetActorsAt(cell).Any(x => x != ignoreActor);
 		}
 
@@ -540,7 +541,7 @@ namespace OpenRA.Mods.Common.Traits
 			var canRearmAtActor = rearmable != null && rearmable.Info.RearmActors.Contains(a.Info.Name);
 			var canRepairAtActor = repairable != null && repairable.Info.RepairActors.Contains(a.Info.Name);
 
-			var allowedToEnterRearmer = canRearmAtActor && (allowedToForceEnter || rearmable.RearmableAmmoPools.Any(p => !p.FullAmmo()));
+			var allowedToEnterRearmer = canRearmAtActor && (allowedToForceEnter || rearmable.RearmableAmmoPools.Any(p => !p.HasFullAmmo));
 			var allowedToEnterRepairer = canRepairAtActor && (allowedToForceEnter || self.GetDamageState() != DamageState.Undamaged);
 
 			return allowedToEnterRearmer || allowedToEnterRepairer;
@@ -654,7 +655,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		public bool CanRearmAt(Actor host)
 		{
-			return rearmable != null && rearmable.Info.RearmActors.Contains(host.Info.Name) && rearmable.RearmableAmmoPools.Any(p => !p.FullAmmo());
+			return rearmable != null && rearmable.Info.RearmActors.Contains(host.Info.Name) && rearmable.RearmableAmmoPools.Any(p => !p.HasFullAmmo);
 		}
 
 		public bool CanRepairAt(Actor host)
